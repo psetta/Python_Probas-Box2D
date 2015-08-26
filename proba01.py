@@ -106,7 +106,6 @@ def main():
 				break
 				
 		debuxar_linea_borrado()
-		debuxar_cruz_central()
 
 		#############################################################
 		#EVENTOS ####################################################
@@ -212,16 +211,6 @@ def debuxar_rect(pos, vertices, angulo=False):
 	glVertex2i(int(vertices[1][0]), int(vertices[1][1]))
 	glVertex2i(int(vertices[2][0]), int(vertices[2][1]))
 	glVertex2i(int(vertices[3][0]), int(vertices[3][1]))
-	glEnd()
-	
-def debuxar_cruz_central():
-	glLoadIdentity()
-	glColor4f(1, 1, 1, 0.3)
-	glBegin(GL_LINES)
-	glVertex2f(-5, ALTO_GL/2)
-	glVertex2f(5, ALTO_GL/2)
-	glVertex2f(0, ALTO_GL/2-5)
-	glVertex2f(0, ALTO_GL/2+5)
 	glEnd()
 	
 def debuxar_linea_borrado():
