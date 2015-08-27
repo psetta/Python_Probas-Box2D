@@ -9,16 +9,6 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from Box2D import *
 
-#CONTROLES
-
-##########################################
-#TECLAS DIRECCION E (W,A,S,D) -> MOVEMENTO DA CAMARA
-#BOTON ESQUERDO DO RATO -> CREAR CAIXA
-#BOTON DEREITO DO RATO -> CREAR BLOQUE
-#RODA DO RATO -> ZOOM
-#SUPR -> BORRAR CAIXAS E BLOQUES
-##########################################
-
 #CONSTANTES
 
 ANCHO_VENTANA = 600
@@ -55,6 +45,8 @@ lista_suelo.append(mundo.CreateStaticBody(position=(0, 0), shapes=b2PolygonShape
 lista_suelo.append(mundo.CreateStaticBody(position=(-50, 15), shapes=b2PolygonShape(box=(5,20))))
 lista_suelo.append(mundo.CreateStaticBody(position=(50, 15), shapes=b2PolygonShape(box=(5,20))))
 
+personaje = mundo.CreateDynamicBody(position=(0,50), shapes=b2PolygonShape(box=(1,2), density=10, friction=1))
+
 #MAIN
 
 def main():
@@ -67,6 +59,7 @@ def main():
 	global lista_caixas_shape
 	global lista_suelo
 	global mundo
+	global personaje
 	
 	pygame.init()
 	ventana = pygame.display.set_mode((ANCHO_VENTANA, ALTO_VENTANA), DOUBLEBUF|OPENGL)
@@ -83,13 +76,13 @@ def main():
 		
 		mundo.Step(1 / fps, vel_iters, pos_iters)
 		
-		#mundo.ClearForces()
-		
 		#LIMPIAR VENTANA ######
 		
 		limpiar_ventana()
 		
-		#DEBUXAR ######
+		######################################
+		#DEBUXAR #############################
+		######################################
 		
 		glColor3f(1.0, 1.0, 1.0)
 		
@@ -101,14 +94,22 @@ def main():
 		for i in lista_suelo:
 			debuxar_rect(i.position, list(i.fixtures[0].shape))
 			
+		glColor3f(1, 0.5, 0.5)
+			
+		debuxar_rect(personaje.position, list(personaje.fixtures[0].shape))
+				
+		debuxar_linea_borrado()
+		
+		#BORRADO DE CAIXAS
+		
 		for i in range(len(lista_caixas)):
 			if lista_caixas[i].position[1] < LINHA_BORRADO_Y:
 				lista_caixas.remove(lista_caixas[i])
 				lista_caixas_shape.remove(lista_caixas_shape[i])
 				break
 				
-		debuxar_linea_borrado()
-
+		#COLISIONS
+		
 		#############################################################
 		#EVENTOS ####################################################
 		#############################################################
@@ -139,21 +140,31 @@ def main():
 		
 		tecla_pulsada = pygame.key.get_pressed()
 		
-		if tecla_pulsada[K_UP] or tecla_pulsada[K_w]:
-			pos_camara[1] -= 2
+		if ((tecla_pulsada[K_UP] or tecla_pulsada[K_w]) and 
+				(list(personaje.linearVelocity)[1] < 0.1 and list(personaje.linearVelocity)[1] > -0.1) and 
+				personaje.fixtures[0].body.contacts):
+			personaje.ApplyForceToCenter(b2Vec2(0,10), personaje.position)
+			personaje.ApplyLinearImpulse(b2Vec2(0,25), personaje.position, 0)
 		
 		if tecla_pulsada[K_DOWN] or tecla_pulsada[K_s]:
-			pos_camara[1] += 2
+			personaje.ApplyForceToCenter(b2Vec2(0,-50), personaje.position)
 		
 		if tecla_pulsada[K_LEFT] or tecla_pulsada[K_a]:
-			pos_camara[0] += 2
+			if personaje.fixtures[0].body.contacts:
+				personaje.ApplyForceToCenter(b2Vec2(-30,0), personaje.position)
+			else:
+				personaje.ApplyForceToCenter(b2Vec2(-20,0), personaje.position)
+				
+			#personaje.linearVelocity = (-20,personaje.linearVelocity[1])
 		
 		if tecla_pulsada[K_RIGHT] or tecla_pulsada[K_d]:
-			pos_camara[0] -= 2
+			if personaje.fixtures[0].body.contacts:
+				personaje.ApplyForceToCenter(b2Vec2(30,0), personaje.position)
+			else:
+				personaje.ApplyForceToCenter(b2Vec2(20,0), personaje.position)
+			#personaje.linearVelocity = (20,personaje.linearVelocity[1])
 			
-		if tecla_pulsada[K_SPACE]:
-			for i in lista_caixas:
-				i.ApplyForce(b2Vec2(0,100), i.position, 0)
+		#personaje.ApplyLinearImpulse(b2Vec2(100,0), personaje.position, 0)
 		
 		for event in pygame.event.get():
 		
@@ -176,10 +187,11 @@ def main():
 					lista_suelo.append(mundo.CreateStaticBody(position=(0, 0), shapes=b2PolygonShape(box=(50,5))))
 					lista_suelo.append(mundo.CreateStaticBody(position=(-50, 15), shapes=b2PolygonShape(box=(5,20))))
 					lista_suelo.append(mundo.CreateStaticBody(position=(50, 15), shapes=b2PolygonShape(box=(5,20))))
+					personaje = mundo.CreateDynamicBody(position=(0,50), shapes=b2PolygonShape(box=(1,2), density=5, friction=90))
 			
-			#	if event.key == pygame.K_SPACE:
-			#		for i in lista_caixas:
-			#			i.ApplyForce(b2Vec2(0,100), i.position, 0)
+				if event.key == pygame.K_SPACE:
+					for i in lista_caixas:
+						i.ApplyLinearImpulse(b2Vec2(0,50), personaje.position, 0)
 					
 			if event.type == pygame.QUIT:
 				pygame.quit()
@@ -190,6 +202,10 @@ def main():
 		pygame.display.set_caption("caixas: "+str(len(lista_caixas)))
 		
 		pygame.display.flip()
+		
+		#AXUSTAR CAMARA
+		
+		pos_camara = [-personaje.position[0], -personaje.position[1]+ALTO_GL/2]
 		
 		reloj.tick(fps)
 
