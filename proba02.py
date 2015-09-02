@@ -246,8 +246,8 @@ def main():
 						lista_suelo.append(mundo.CreateStaticBody(
 							position=(int((vertices_clicados[0][0]+vertices_clicados[1][0])/2),int((vertices_clicados[0][1]+vertices_clicados[1][1])/2)),
 							shapes=b2PolygonShape(box=(
-										(vertices_clicados[1][0]-vertices_clicados[0][0])/2, 
-										(sorted(vertices_clicados, key = lambda x : x[1])[1][1]-sorted(vertices_clicados, key = lambda x : x[1])[0][1])/2))
+										int((vertices_clicados[1][0]-vertices_clicados[0][0])/2), 
+										int((sorted(vertices_clicados, key = lambda x : x[1])[1][1]-sorted(vertices_clicados, key = lambda x : x[1])[0][1])/2)))
 							))
 						vertices_clicados = []
 						vertices_rectangulo = []
