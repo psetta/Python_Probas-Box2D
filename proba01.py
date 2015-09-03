@@ -153,7 +153,7 @@ def main():
 			
 		if tecla_pulsada[K_SPACE]:
 			for i in lista_caixas:
-				i.ApplyForce(b2Vec2(0,100), i.position, 0)
+				i.ApplyForce(b2Vec2(0,150), i.position, 0)
 		
 		for event in pygame.event.get():
 		
@@ -217,10 +217,10 @@ def debuxar_rect(pos, vertices, angulo=False):
 	if angulo:
 		glRotatef(math.degrees(angulo), 0, 0, 1)
 	glBegin(GL_QUADS)
-	glVertex2i(int(vertices[0][0]), int(vertices[0][1]))
-	glVertex2i(int(vertices[1][0]), int(vertices[1][1]))
-	glVertex2i(int(vertices[2][0]), int(vertices[2][1]))
-	glVertex2i(int(vertices[3][0]), int(vertices[3][1]))
+	glVertex2f(vertices[0][0], vertices[0][1])
+	glVertex2f(vertices[1][0], vertices[1][1])
+	glVertex2f(vertices[2][0], vertices[2][1])
+	glVertex2f(vertices[3][0], vertices[3][1])
 	glEnd()
 	
 def debuxar_linea_borrado():

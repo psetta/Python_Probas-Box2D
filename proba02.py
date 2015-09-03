@@ -7,7 +7,17 @@ import pygame
 from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
+from OpenGL.GLUT import *
 from Box2D import *
+
+#CONTROLES
+
+##########################################
+#TECLAS DIRECCION E (W,A,S,D) -> MOVEMENTO DA BOLA
+#BOTON ESQUERDO DO RATO -> CREAR RECTANGULOS
+#RODA DO RATO -> ZOOM
+#SUPR -> REINICIAR O XOGO
+##########################################
 
 #CONSTANTES
 
@@ -36,7 +46,8 @@ lista_caixas_shape = []
 lista_suelo = []
 
 vertices_clicados = []
-vertices_rectangulo = []
+
+game_over = False
 
 #BOX2D
 
@@ -57,6 +68,10 @@ def crear_mundo():
 	
 crear_mundo()
 
+pos_creacion_caixas = [[60,80],[-20,50]]
+cont_crear_caixa_fixo = 2
+cont_crear_caixa = cont_crear_caixa_fixo
+
 personaje = mundo.CreateDynamicBody(position=(0,3.5), shapes=b2CircleShape(box=(1,2), density=10, friction=5, radius=1.5))
 
 #MAIN
@@ -73,7 +88,8 @@ def main():
 	global mundo
 	global personaje
 	global vertices_clicados
-	global vertices_rectangulo
+	global game_over
+	global cont_crear_caixa
 	
 	pygame.init()
 	ventana = pygame.display.set_mode((ANCHO_VENTANA, ALTO_VENTANA), DOUBLEBUF|OPENGL)
@@ -95,6 +111,17 @@ def main():
 		#LIMPIAR VENTANA ######
 		
 		limpiar_ventana()
+		
+		#CREAR CAIXAS
+		
+		if not cont_crear_caixa:
+			for i in pos_creacion_caixas:
+				lista_caixas.append(mundo.CreateDynamicBody
+						(position=(i[0],i[1])))
+				lista_caixas_shape.append(lista_caixas[-1].CreatePolygonFixture(box=(0.5,0.5), density=0.1, friction=1))
+			cont_crear_caixa = cont_crear_caixa_fixo
+		else:
+			cont_crear_caixa -= 1
 		
 		######################################
 		#DEBUXAR #############################
@@ -118,8 +145,10 @@ def main():
 			debuxar_punto(i)
 			
 		if len(vertices_clicados) >= 1:
-			debuxar_rectangulo_a_pintar(vertices_rectangulo)
+			debuxar_rectangulo_a_pintar(vertices_clicados+[pos_mouse_gl])
 		
+		if game_over:		
+			debuxar_fondo_game_over()
 		
 		#debuxar_texto()
 				
@@ -132,8 +161,6 @@ def main():
 				lista_caixas.remove(lista_caixas[i])
 				lista_caixas_shape.remove(lista_caixas_shape[i])
 				break
-				
-		#COLISIONS
 		
 		#############################################################
 		#EVENTOS ####################################################
@@ -153,19 +180,12 @@ def main():
 		pos_mouse_gl = [pos_mouse[0]*ANCHO_GL/ANCHO_VENTANA-ANCHO_GL/2-pos_camara[0],ALTO_GL-(pos_mouse[1]*ALTO_GL/ALTO_VENTANA)-pos_camara[1]]
 		pos_mouse_gl_int = [int(pos_mouse_gl[0]),int(pos_mouse_gl[1])]
 		
-		if len(vertices_clicados) == 1:
-			vertices_rectangulo = [[pos_mouse_gl_int[0],vertices_clicados[0][1]],pos_mouse_gl_int,[vertices_clicados[0][0],pos_mouse_gl_int[1]],vertices_clicados[0]]
-		
 		if descanso_mouse == 0 and (teclas_mouse_pulsadas[0] or teclas_mouse_pulsadas[2]):
 			if teclas_mouse_pulsadas[0] and len(vertices_clicados) <= 1:
 				vertices_clicados.append(pos_mouse_gl_int)
-				if len(vertices_clicados) == 2:
-					vertices_rectangulo = [[vertices_clicados[1][0],vertices_clicados[0][1]],vertices_clicados[1],[vertices_clicados[0][0],vertices_clicados[1][1]],vertices_clicados[0]]
-			#if teclas_mouse_pulsadas[2]:
-			#	lista_suelo.append(mundo.CreateStaticBody
-			#	(position=(pos_mouse_gl),
-			#	shapes=b2PolygonShape(box=(1,1))))
-			descanso_mouse = TEMPO_ESPERA_MOUSE
+				descanso_mouse = TEMPO_ESPERA_MOUSE
+			if teclas_mouse_pulsadas[2]:
+				vertices_clicados = []
 		
 		#TECLAS ######
 		
@@ -236,23 +256,21 @@ def main():
 					personaje = mundo.CreateDynamicBody(position=(0,3.5), shapes=b2CircleShape(box=(1,2), density=10, friction=5, radius=1.5))
 					pos_camara = [-personaje.position[0], -personaje.position[1]+ALTO_GL/2]
 					vertices_clicados = []
-					vertices_rectangulo = []
+					game_over = False
 			
 				if event.key == pygame.K_SPACE:
 					if len(vertices_clicados) <= 1:
 						vertices_clicados = []
-					else:
+					elif abs(vertices_clicados[0][0] - vertices_clicados[1][0]) and abs(vertices_clicados[0][1] - vertices_clicados[1][1]):
 						vertices_clicados = sorted(vertices_clicados, key = lambda x: x[0])
 						lista_suelo.append(mundo.CreateStaticBody(
-							position=(int((vertices_clicados[0][0]+vertices_clicados[1][0])/2),int((vertices_clicados[0][1]+vertices_clicados[1][1])/2)),
+							position=((vertices_clicados[0][0]+vertices_clicados[1][0])/2,(vertices_clicados[0][1]+vertices_clicados[1][1])/2),
 							shapes=b2PolygonShape(box=(
-										int((vertices_clicados[1][0]-vertices_clicados[0][0])/2), 
-										int((sorted(vertices_clicados, key = lambda x : x[1])[1][1]-sorted(vertices_clicados, key = lambda x : x[1])[0][1])/2)))
-							))
+										(vertices_clicados[1][0]-vertices_clicados[0][0])/2, 
+										(sorted(vertices_clicados, key = lambda x : x[1])[1][1]-sorted(vertices_clicados, key = lambda x : x[1])[0][1])/2))))
 						vertices_clicados = []
-						vertices_rectangulo = []
-					#for i in lista_caixas:
-					#	i.ApplyLinearImpulse(b2Vec2(0,50), personaje.position, 0)
+					else:
+						vertices_clicados = []
 				
 			if event.type == pygame.QUIT:
 				pygame.quit()
@@ -268,6 +286,10 @@ def main():
 		
 			pos_camara = [-personaje.position[0], -personaje.position[1]+ALTO_GL/2]
 			pos_camara[1] = min(pos_camara[1],-LINHA_BORRADO_Y)
+			
+		
+		if list(personaje.position)[1] < LINHA_BORRADO_Y:
+			game_over = True
 		
 		reloj.tick(fps)
 
@@ -295,18 +317,19 @@ def debuxar_rect(pos, vertices, angulo=False):
 	if angulo:
 		glRotatef(math.degrees(angulo), 0, 0, 1)
 	glBegin(GL_QUADS)
-	glVertex2i(int(vertices[0][0]), int(vertices[0][1]))
-	glVertex2i(int(vertices[1][0]), int(vertices[1][1]))
-	glVertex2i(int(vertices[2][0]), int(vertices[2][1]))
-	glVertex2i(int(vertices[3][0]), int(vertices[3][1]))
+	glVertex2f(vertices[0][0], vertices[0][1])
+	glVertex2f(vertices[1][0], vertices[1][1])
+	glVertex2f(vertices[2][0], vertices[2][1])
+	glVertex2f(vertices[3][0], vertices[3][1])
 	glEnd()
 	
 def debuxar_circulo(pos, radio):
 	glLoadIdentity()
 	glEnable(GL_POLYGON_SMOOTH)
+	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
 	glBegin(GL_POLYGON)
-	for i in range(250):
-		angulo = 2 * math.pi * i /250
+	for i in range(50):
+		angulo = 2 * math.pi * i /50
 		px = radio * math.cos(angulo)
 		py = radio * math.sin(angulo)
 		glVertex2f((px+pos[0]),(py+pos[1]))
@@ -331,17 +354,18 @@ def debuxar_punto(pos):
 def debuxar_rectangulo_a_pintar(vertices):
 	glLoadIdentity()
 	glColor4f(0.5, 0.5, 1, 0.2)
-	glBegin(GL_QUADS)
-	for i in vertices:
-		glVertex2f(i[0], i[1])
-	glEnd()
+	glRectf(vertices[0][0],vertices[0][1],vertices[1][0],vertices[1][1])
 	
 def debuxar_texto():
 	glLoadIdentity()
 	glColor3f(1, 0, 0)
 	glRasterPos2f(0, 0)
-	glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, "H")
-	glEnd()
+	glutBitmapString(GLUT_BITMAP_HELVETICA_10, "game over")
+	
+def debuxar_fondo_game_over():
+	glLoadIdentity()
+	glColor4f(1, 0, 0, 0.2)
+	glRectf(-ANCHO_GL-pos_camara[0],ALTO_GL-pos_camara[1],ANCHO_GL-pos_camara[0],LINHA_BORRADO_Y)
 	
 if __name__ == '__main__':
 	main()
