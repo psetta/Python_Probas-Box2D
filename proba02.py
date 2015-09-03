@@ -68,7 +68,7 @@ def crear_mundo():
 	
 crear_mundo()
 
-pos_creacion_caixas = [[60,80],[-20,50]]
+pos_creacion_caixas = [[60,80]]
 cont_crear_caixa_fixo = 2
 cont_crear_caixa = cont_crear_caixa_fixo
 
