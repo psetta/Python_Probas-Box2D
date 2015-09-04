@@ -46,8 +46,23 @@ lista_caixas_shape = []
 lista_suelo = []
 
 vertices_clicados = []
+angulo_rectangulo_clicado = 0
+
+modo_debuxo = "bloque"
 
 game_over = False
+
+#CLASES
+
+class generador_caixas:
+	def __init__(self,pos,ancho,alto,cont0,cont,densidad,friccion):
+		self.pos = pos
+		self.ancho = ancho
+		self.alto = alto
+		self.cont0 = cont0
+		self.cont = cont
+		self.densidad = densidad
+		self.friccion = friccion
 
 #BOX2D
 
@@ -59,8 +74,8 @@ mundo = b2World(gravity=(0, -50))
 def crear_mundo():
 	global lista_suelo
 	lista_suelo.append(mundo.CreateStaticBody(position=(0, 0), shapes=b2PolygonShape(box=(12,2))))
-	lista_suelo.append(mundo.CreateStaticBody(position=(30, 10), shapes=b2PolygonShape(box=(10,2))))
-	lista_suelo.append(mundo.CreateStaticBody(position=(60, 20), shapes=b2PolygonShape(box=(10,2))))
+	lista_suelo.append(mundo.CreateStaticBody(position=(30, 10), angle=-0.3, shapes=b2PolygonShape(box=(10,2))))
+	lista_suelo.append(mundo.CreateStaticBody(position=(60, 20), angle=0.5, shapes=b2PolygonShape(box=(10,2))))
 	lista_suelo.append(mundo.CreateStaticBody(position=(90, 30), shapes=b2PolygonShape(box=(10,2))))
 	lista_suelo.append(mundo.CreateStaticBody(position=(120, 25), shapes=b2PolygonShape(box=(5,2))))
 	lista_suelo.append(mundo.CreateStaticBody(position=(130, 20), shapes=b2PolygonShape(box=(5,2))))
@@ -68,9 +83,7 @@ def crear_mundo():
 	
 crear_mundo()
 
-pos_creacion_caixas = [[60,80]]
-cont_crear_caixa_fixo = 2
-cont_crear_caixa = cont_crear_caixa_fixo
+lista_generador_caixas = [generador_caixas([50,120],0.4,0.4,2,0,0.1,1),generador_caixas([70,120],5,2,50,0,0.05,1)]
 
 personaje = mundo.CreateDynamicBody(position=(0,3.5), shapes=b2CircleShape(box=(1,2), density=10, friction=5, radius=1.5))
 
@@ -90,6 +103,8 @@ def main():
 	global vertices_clicados
 	global game_over
 	global cont_crear_caixa
+	global angulo_rectangulo_clicado
+	global modo_debuxo
 	
 	pygame.init()
 	ventana = pygame.display.set_mode((ANCHO_VENTANA, ALTO_VENTANA), DOUBLEBUF|OPENGL)
@@ -114,14 +129,14 @@ def main():
 		
 		#CREAR CAIXAS
 		
-		if not cont_crear_caixa:
-			for i in pos_creacion_caixas:
+		for i in lista_generador_caixas:
+			if not i.cont:
 				lista_caixas.append(mundo.CreateDynamicBody
-						(position=(i[0],i[1])))
-				lista_caixas_shape.append(lista_caixas[-1].CreatePolygonFixture(box=(0.5,0.5), density=0.1, friction=1))
-			cont_crear_caixa = cont_crear_caixa_fixo
-		else:
-			cont_crear_caixa -= 1
+					(position=(i.pos[0],i.pos[1])))
+				lista_caixas_shape.append(lista_caixas[-1].CreatePolygonFixture(box=(i.ancho,i.alto), density=i.densidad, friction=i.friccion))
+				i.cont = i.cont0
+			else:
+				i.cont -= 1
 		
 		######################################
 		#DEBUXAR #############################
@@ -129,13 +144,13 @@ def main():
 		
 		glColor3f(1.0, 1.0, 1.0)
 		
-		for i in range(len(lista_caixas)):
-			debuxar_rect(lista_caixas[i].position, list(lista_caixas_shape[i].shape), lista_caixas[i].angle)
+		for i in lista_caixas:
+			debuxar_rect(i.position, list(i.fixtures[0].shape), i.angle)
 		
 		glColor3f(0.0, 0.5, 1.0)
 		
 		for i in lista_suelo:
-			debuxar_rect(i.position, list(i.fixtures[0].shape))
+			debuxar_rect(i.position, list(i.fixtures[0].shape), i.angle)
 			
 		glColor3f(0.1, 0.9, 0.1)
 		
@@ -145,7 +160,7 @@ def main():
 			debuxar_punto(i)
 			
 		if len(vertices_clicados) >= 1:
-			debuxar_rectangulo_a_pintar(vertices_clicados+[pos_mouse_gl])
+			debuxar_rectangulo_a_pintar(vertices_clicados+[pos_mouse_gl],angulo_rectangulo_clicado)
 		
 		if game_over:		
 			debuxar_fondo_game_over()
@@ -192,12 +207,10 @@ def main():
 		tecla_pulsada = pygame.key.get_pressed()
 		
 		if (tecla_pulsada[K_UP] or tecla_pulsada[K_w]): 
-			if (list(personaje.linearVelocity)[1] < 0.1 and list(personaje.linearVelocity)[1] > -0.1 and 
-					personaje.fixtures[0].body.contacts and not personaje.fixtures[0].body.contacts[0].contact.manifold.localNormal[1] < 0):
+			if (list(personaje.linearVelocity)[1] < 0.1 and personaje.fixtures[0].body.contacts 
+				and personaje.fixtures[0].body.contacts[0].contact.manifold.localNormal[1] >= 0.1):
 				personaje.ApplyForceToCenter(b2Vec2(0,10), personaje.position)
-				personaje.ApplyLinearImpulse(b2Vec2(0,30), personaje.position, 0)
-			if list(personaje.linearVelocity)[1] > 0.05:
-				personaje.ApplyForceToCenter(b2Vec2(0,15), personaje.position)
+				personaje.ApplyLinearImpulse(b2Vec2(0,35), personaje.position, 0)
 			
 		
 		if tecla_pulsada[K_DOWN] or tecla_pulsada[K_s]:
@@ -229,6 +242,12 @@ def main():
 				
 		personaje.linearVelocity = b2Vec2(max(-35,list(personaje.linearVelocity)[0]),list(personaje.linearVelocity)[1])
 		personaje.linearVelocity = b2Vec2(min(35,list(personaje.linearVelocity)[0]),list(personaje.linearVelocity)[1])
+		
+		
+		if tecla_pulsada[K_e] and len(vertices_clicados) >= 1:
+			angulo_rectangulo_clicado -= 0.02
+		elif tecla_pulsada[K_q] and len(vertices_clicados) >= 1:
+			angulo_rectangulo_clicado += 0.02
 			
 			
 		#personaje.linearVelocity = (20,personaje.linearVelocity[1])
@@ -257,20 +276,46 @@ def main():
 					pos_camara = [-personaje.position[0], -personaje.position[1]+ALTO_GL/2]
 					vertices_clicados = []
 					game_over = False
+					
+				if event.key == pygame.K_f:
+					if modo_debuxo == "bloque":
+						modo_debuxo = "caixa"
+					else:
+						modo_debuxo = "bloque"
 			
 				if event.key == pygame.K_SPACE:
 					if len(vertices_clicados) <= 1:
 						vertices_clicados = []
 					elif abs(vertices_clicados[0][0] - vertices_clicados[1][0]) and abs(vertices_clicados[0][1] - vertices_clicados[1][1]):
+					
+						pos_rectangulo_debuxado = [(vertices_clicados[0][0]+vertices_clicados[1][0])/2,(vertices_clicados[0][1]+vertices_clicados[1][1])/2]
+						tamanho_rectangulo_pintado = [(vertices_clicados[1][0]-vertices_clicados[0][0])/2, 
+							(sorted(vertices_clicados, key = lambda x : x[1])[1][1]-sorted(vertices_clicados, key = lambda x : x[1])[0][1])/2]
 						vertices_clicados = sorted(vertices_clicados, key = lambda x: x[0])
-						lista_suelo.append(mundo.CreateStaticBody(
-							position=((vertices_clicados[0][0]+vertices_clicados[1][0])/2,(vertices_clicados[0][1]+vertices_clicados[1][1])/2),
-							shapes=b2PolygonShape(box=(
-										(vertices_clicados[1][0]-vertices_clicados[0][0])/2, 
-										(sorted(vertices_clicados, key = lambda x : x[1])[1][1]-sorted(vertices_clicados, key = lambda x : x[1])[0][1])/2))))
+							
+						if modo_debuxo == "bloque":
+							lista_suelo.append(mundo.CreateStaticBody(
+								position=(pos_rectangulo_debuxado[0],pos_rectangulo_debuxado[1]), 
+								angle = angulo_rectangulo_clicado,
+								shapes=b2PolygonShape(box=(
+											tamanho_rectangulo_pintado[0],
+											tamanho_rectangulo_pintado[1])
+											)))
+						else:
+							lista_caixas.append(mundo.CreateDynamicBody(
+								position=(pos_rectangulo_debuxado[0],pos_rectangulo_debuxado[1]),
+								angle = angulo_rectangulo_clicado))
+
+							lista_caixas_shape.append(lista_caixas[-1].CreatePolygonFixture(box=(
+								tamanho_rectangulo_pintado[0], tamanho_rectangulo_pintado[1]),
+								density=0.2, friction=1))
+								
 						vertices_clicados = []
+						angulo_rectangulo_clicado = 0
+						
 					else:
 						vertices_clicados = []
+						angulo_rectangulo_clicado = 0
 				
 			if event.type == pygame.QUIT:
 				pygame.quit()
@@ -282,10 +327,12 @@ def main():
 		
 		#AXUSTAR CAMARA
 		
-		if not pos_camara[1] == -LINHA_BORRADO_Y:
-		
+		if not personaje.position[1] < LINHA_BORRADO_Y:
 			pos_camara = [-personaje.position[0], -personaje.position[1]+ALTO_GL/2]
-			pos_camara[1] = min(pos_camara[1],-LINHA_BORRADO_Y)
+		else:
+			pos_camara = [pos_camara[0], -personaje.position[1]+ALTO_GL/2]
+		 
+		pos_camara[1] = min(pos_camara[1],-LINHA_BORRADO_Y)
 			
 		
 		if list(personaje.position)[1] < LINHA_BORRADO_Y:
@@ -351,10 +398,18 @@ def debuxar_punto(pos):
 	glVertex2f(pos[0], pos[1])
 	glEnd()
 
-def debuxar_rectangulo_a_pintar(vertices):
+def debuxar_rectangulo_a_pintar(vertices,angulo):
+	ancho_cadro = vertices[1][0] - vertices[0][0]
+	alto_cadro = vertices[0][1] - vertices[1][1]
+	pos = [vertices[0][0]+ancho_cadro/2, vertices[1][1]+alto_cadro/2]
 	glLoadIdentity()
-	glColor4f(0.5, 0.5, 1, 0.2)
-	glRectf(vertices[0][0],vertices[0][1],vertices[1][0],vertices[1][1])
+	if modo_debuxo == "bloque":
+		glColor4f(0.5, 0.5, 1, 0.2)
+	else:
+		glColor4f(0.8, 0.8, 0.8, 0.2)
+	glTranslatef(pos[0], pos[1], 0)
+	glRotatef(math.degrees(angulo),0, 0, 1)
+	glRectf(vertices[0][0]-pos[0],vertices[0][1]-pos[1],vertices[1][0]-pos[0],vertices[1][1]-pos[1])
 	
 def debuxar_texto():
 	glLoadIdentity()
