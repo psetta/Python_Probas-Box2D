@@ -49,6 +49,7 @@ vertices_clicados = []
 angulo_rectangulo_clicado = 0
 
 modo_debuxo = "bloque"
+modo_camara = "personaje"
 
 game_over = False
 
@@ -74,7 +75,7 @@ mundo = b2World(gravity=(0, -50))
 def crear_mundo():
 	global lista_suelo
 	lista_suelo.append(mundo.CreateStaticBody(position=(0, 0), shapes=b2PolygonShape(box=(12,2))))
-	lista_suelo.append(mundo.CreateStaticBody(position=(30, 10), angle=-0.3, shapes=b2PolygonShape(box=(10,2))))
+	lista_suelo.append(mundo.CreateStaticBody(position=(30, 8), angle=-0.3, shapes=b2PolygonShape(box=(10,2))))
 	lista_suelo.append(mundo.CreateStaticBody(position=(60, 20), angle=0.5, shapes=b2PolygonShape(box=(10,2))))
 	lista_suelo.append(mundo.CreateStaticBody(position=(90, 30), shapes=b2PolygonShape(box=(10,2))))
 	lista_suelo.append(mundo.CreateStaticBody(position=(120, 25), shapes=b2PolygonShape(box=(5,2))))
@@ -83,7 +84,7 @@ def crear_mundo():
 	
 crear_mundo()
 
-lista_generador_caixas = [generador_caixas([50,120],0.4,0.4,2,0,0.1,1),generador_caixas([70,120],5,2,50,0,0.05,1)]
+lista_generador_caixas = [generador_caixas([50,120],0.4,0.4,2,0,0.1,1),generador_caixas([70,120],5,2,100,0,0.05,1)]
 
 personaje = mundo.CreateDynamicBody(position=(0,3.5), shapes=b2CircleShape(box=(1,2), density=10, friction=5, radius=1.5))
 
@@ -105,6 +106,7 @@ def main():
 	global cont_crear_caixa
 	global angulo_rectangulo_clicado
 	global modo_debuxo
+	global modo_camara
 	
 	pygame.init()
 	ventana = pygame.display.set_mode((ANCHO_VENTANA, ALTO_VENTANA), DOUBLEBUF|OPENGL)
@@ -201,39 +203,52 @@ def main():
 				descanso_mouse = TEMPO_ESPERA_MOUSE
 			if teclas_mouse_pulsadas[2]:
 				vertices_clicados = []
+				angulo_rectangulo_clicado = 0
 		
 		#TECLAS ######
 		
 		tecla_pulsada = pygame.key.get_pressed()
 		
 		if (tecla_pulsada[K_UP] or tecla_pulsada[K_w]): 
-			if (list(personaje.linearVelocity)[1] < 0.1 and personaje.fixtures[0].body.contacts 
-				and personaje.fixtures[0].body.contacts[0].contact.manifold.localNormal[1] >= 0.1):
-				personaje.ApplyForceToCenter(b2Vec2(0,10), personaje.position)
-				personaje.ApplyLinearImpulse(b2Vec2(0,35), personaje.position, 0)
+			if modo_camara == "personaje":
+				if (list(personaje.linearVelocity)[1] < 0.1 and personaje.fixtures[0].body.contacts 
+					and personaje.fixtures[0].body.contacts[0].contact.manifold.localNormal[1] >= 0.1):
+					personaje.ApplyForceToCenter(b2Vec2(0,10), personaje.position)
+					personaje.ApplyLinearImpulse(b2Vec2(0,35), personaje.position, 0)
+			else:
+				pos_camara[1] -= 1
 			
 		
 		if tecla_pulsada[K_DOWN] or tecla_pulsada[K_s]:
-			personaje.ApplyForceToCenter(b2Vec2(0,-50), personaje.position)
+			if modo_camara == "personaje":
+				personaje.ApplyForceToCenter(b2Vec2(0,-50), personaje.position)
+			else:
+				pos_camara[1] += 1
 		
 		if tecla_pulsada[K_LEFT] or tecla_pulsada[K_a]:
-			if personaje.fixtures[0].body.contacts:
-				if (list(personaje.linearVelocity)[0]) > -1:
-					personaje.ApplyLinearImpulse(b2Vec2(-2,0), personaje.position, 0)
-				personaje.ApplyForceToCenter(b2Vec2(-30,0), personaje.position)
+			if modo_camara == "personaje":
+				if personaje.fixtures[0].body.contacts:
+					if (list(personaje.linearVelocity)[0]) > -1:
+						personaje.ApplyLinearImpulse(b2Vec2(-2,0), personaje.position, 0)
+					personaje.ApplyForceToCenter(b2Vec2(-30,0), personaje.position)
+				else:
+					personaje.ApplyForceToCenter(b2Vec2(-20,0), personaje.position)
+					personaje.linearVelocity = b2Vec2(max(-25,list(personaje.linearVelocity)[0]),list(personaje.linearVelocity)[1])
 			else:
-				personaje.ApplyForceToCenter(b2Vec2(-20,0), personaje.position)
-				personaje.linearVelocity = b2Vec2(max(-25,list(personaje.linearVelocity)[0]),list(personaje.linearVelocity)[1])
+				pos_camara[0] += 1
 			
 		elif tecla_pulsada[K_RIGHT] or tecla_pulsada[K_d]:
-			if personaje.fixtures[0].body.contacts:
-				if (list(personaje.linearVelocity)[0]) < 1:
-					personaje.ApplyLinearImpulse(b2Vec2(2,0), personaje.position, 0)
-				personaje.ApplyForceToCenter(b2Vec2(30,0), personaje.position)
+			if modo_camara == "personaje":
+				if personaje.fixtures[0].body.contacts:
+					if (list(personaje.linearVelocity)[0]) < 1:
+						personaje.ApplyLinearImpulse(b2Vec2(2,0), personaje.position, 0)
+					personaje.ApplyForceToCenter(b2Vec2(30,0), personaje.position)
+				else:
+					personaje.ApplyForceToCenter(b2Vec2(20,0), personaje.position)
+					personaje.linearVelocity = b2Vec2(min(25,list(personaje.linearVelocity)[0]),list(personaje.linearVelocity)[1])
 			else:
-				personaje.ApplyForceToCenter(b2Vec2(20,0), personaje.position)
-				personaje.linearVelocity = b2Vec2(min(25,list(personaje.linearVelocity)[0]),list(personaje.linearVelocity)[1])
-			
+				pos_camara[0] -= 1
+				
 		else:
 			if personaje.fixtures[0].body.contacts:
 				personaje.ApplyLinearImpulse(b2Vec2(-(list(personaje.linearVelocity)[0])/5,0), personaje.position, 0)
@@ -282,12 +297,20 @@ def main():
 						modo_debuxo = "caixa"
 					else:
 						modo_debuxo = "bloque"
+						
+				if event.key == pygame.K_c:
+					if modo_camara == "personaje":
+						modo_camara = "libre"
+					else:
+						modo_camara = "personaje"
 			
 				if event.key == pygame.K_SPACE:
 					if len(vertices_clicados) <= 1:
 						vertices_clicados = []
 					elif abs(vertices_clicados[0][0] - vertices_clicados[1][0]) and abs(vertices_clicados[0][1] - vertices_clicados[1][1]):
 					
+						vertices_clicados = sorted(vertices_clicados, key = lambda x: x[0])
+						
 						pos_rectangulo_debuxado = [(vertices_clicados[0][0]+vertices_clicados[1][0])/2,(vertices_clicados[0][1]+vertices_clicados[1][1])/2]
 						tamanho_rectangulo_pintado = [(vertices_clicados[1][0]-vertices_clicados[0][0])/2, 
 							(sorted(vertices_clicados, key = lambda x : x[1])[1][1]-sorted(vertices_clicados, key = lambda x : x[1])[0][1])/2]
@@ -327,12 +350,13 @@ def main():
 		
 		#AXUSTAR CAMARA
 		
-		if not personaje.position[1] < LINHA_BORRADO_Y:
-			pos_camara = [-personaje.position[0], -personaje.position[1]+ALTO_GL/2]
-		else:
-			pos_camara = [pos_camara[0], -personaje.position[1]+ALTO_GL/2]
+		if modo_camara == "personaje":
+			if not personaje.position[1] < LINHA_BORRADO_Y:
+				pos_camara = [-personaje.position[0], -personaje.position[1]+ALTO_GL/2]
+			else:
+				pos_camara = [pos_camara[0], -personaje.position[1]+ALTO_GL/2]
 		 
-		pos_camara[1] = min(pos_camara[1],-LINHA_BORRADO_Y)
+			pos_camara[1] = min(pos_camara[1],-LINHA_BORRADO_Y)
 			
 		
 		if list(personaje.position)[1] < LINHA_BORRADO_Y:
