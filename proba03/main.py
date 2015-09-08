@@ -23,9 +23,14 @@ if os.name == 'nt' and sys.getwindowsversion()[0] >= 6:
 
 ##########################################
 #TECLAS DIRECCION E (W,A,S,D) -> MOVEMENTO DA BOLA
+#Q e E -> ROTAN OS RECTANGULOS A CREAR
 #BOTON ESQUERDO DO RATO -> CREAR RECTANGULOS
+#BOTON DEREITO DO RATO -> ANULAR VERTICES DO RECTANGULO A CREAR
 #RODA DO RATO -> ZOOM
 #SUPR -> REINICIAR O XOGO
+#F -> CAMBIAR TIPO DE RECTANGULO A CREAR
+#G -> DEVOLVE DATOS DOS RECTANGULOS 'SUELO' CREADOS
+#C -> MODO EDITOR(anula restriccions)
 ##########################################
 
 #VARIABLES
@@ -44,6 +49,8 @@ angulo_rectangulo_clicado = 0
 tempo_inicio_nivel = 0
 
 modo_debuxo = "caixa"
+
+modo_editor = False
 
 #BOX2D
 
@@ -115,12 +122,17 @@ def main():
 	global ALTO_GL
 	global tamanho_rectangulo_pintado
 	global rect_final
+	global modo_editor
 	
 	pygame.init()
 	
 	ventana = pygame.display.set_mode((ANCHO_VENTANA, ALTO_VENTANA), DOUBLEBUF|OPENGL|RESIZABLE )
 	
-	pygame.display.set_caption("Xogo de Plataformas")
+	pygame.display.set_caption("")
+	
+	icono = pygame.image.load("img/icono.png").convert_alpha()
+	
+	pygame.display. set_icon (icono)
 	
 	init_gl()
 	
@@ -291,8 +303,15 @@ def main():
 						print "posicion", i.position, i.fixtures[0].shape, "angulo", i.angle
 						print "-" * 10
 					print "#" * 50
+					
+				if event.key == pygame.K_c:
+					if modo_editor:
+						modo_editor = False
+					else:
+						modo_editor = True
 			
 				if event.key == pygame.K_SPACE:
+				
 					if len(vertices_clicados) <= 1 or not rectangulo_a_crear:
 						vertices_clicados = []
 						angulo_rectangulo_clicado = 0
@@ -305,10 +324,11 @@ def main():
 						tamanho_rectangulo_pintado = [(vertices_clicados[1][0]-vertices_clicados[0][0])/2, 
 							(sorted(vertices_clicados, key = lambda x : x[1])[1][1]-sorted(vertices_clicados, key = lambda x : x[1])[0][1])/2]
 							
-						if ((tamanho_rectangulo_pintado[0] >= TAMANHO_MIN_RECT_ANCHO and 
+						if modo_editor or ((tamanho_rectangulo_pintado[0] >= TAMANHO_MIN_RECT_ANCHO and 
 							tamanho_rectangulo_pintado[1] >= TAMANHO_MIN_RECT_ALTO) and 
 							tamanho_rectangulo_pintado[0] <= TAMANHO_MAX_RECT_ANCHO and 
-							tamanho_rectangulo_pintado[1] <= TAMANHO_MAX_RECT_ALTO):
+							tamanho_rectangulo_pintado[1] <= TAMANHO_MAX_RECT_ALTO
+							and ((not rectangulo_a_crear.contacts) or (rectangulo_a_crear.contacts and not rectangulo_a_crear.contacts[0].contact.touching))):
 							
 							if modo_debuxo == "bloque":
 								lista_suelo.append(mundo.CreateStaticBody(
@@ -360,7 +380,7 @@ def main():
 			if not vertices_clicados_aux[0][0] == vertices_clicados_aux[1][0] and not vertices_clicados_aux[0][1] == vertices_clicados_aux[1][1]:
 					
 				if rectangulo_a_crear:
-					rectangulo_a_crear.DestroyFixture(rectangulo_a_crear_shape)
+					rectangulo_a_crear.DestroyFixture(rectangulo_a_crear.fixtures[0])
 			
 			
 				vertices_clicados_aux = sorted(vertices_clicados_aux, key = lambda x: x[0])
@@ -486,7 +506,7 @@ def debuxar_rectangulo_a_pintar(vertices,angulo):
 	glRotatef(math.degrees(angulo),0, 0, 1)
 	glRectf(vertices[0][0]-pos[0],vertices[0][1]-pos[1],vertices[1][0]-pos[0],vertices[1][1]-pos[1])
 	glPolygonMode (GL_FRONT_AND_BACK, GL_LINE)
-	if (rectangulo_a_crear and rectangulo_a_crear_shape.body.contacts):
+	if rectangulo_a_crear and rectangulo_a_crear.contacts and rectangulo_a_crear.contacts[0].contact.touching:
 		glColor4f(1, 0, 0, 0.9)
 	elif modo_debuxo == "bloque":
 		glColor4f(0.0, 0.5, 1.0, 0.5)
