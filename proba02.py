@@ -211,7 +211,7 @@ def main():
 		
 		if (tecla_pulsada[K_UP] or tecla_pulsada[K_w]): 
 			if modo_camara == "personaje":
-				if (list(personaje.linearVelocity)[1] < 0.1 and personaje.fixtures[0].body.contacts 
+				if (list(personaje.linearVelocity)[1] < 0.1 and personaje.contacts and personaje.contacts[0].contact.touching
 					and personaje.fixtures[0].body.contacts[0].contact.manifold.localNormal[1] >= 0.1):
 					personaje.ApplyForceToCenter(b2Vec2(0,10), personaje.position)
 					personaje.ApplyLinearImpulse(b2Vec2(0,35), personaje.position, 0)
