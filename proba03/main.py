@@ -79,10 +79,11 @@ def crear_mundo():
 	lista_caixas.append(mundo.CreateDynamicBody(position=(5,40)))
 	lista_caixas_shape.append(lista_caixas[-1].CreatePolygonFixture(box=(70,3), density=2, friction=1))
 	
-	bola = mundo.CreateDynamicBody(position=(-90,110))
-	bola_shape = bola.CreateCircleFixture(density=3, friction=0.5, radius=RADIO_BOLA, restitution=0.3)
+	#bola = mundo.CreateDynamicBody(position=(-90,110))
+	bola = mundo.CreateDynamicBody(position=(85,110))
+	bola_shape = bola.CreateCircleFixture(density=3, friction=0.6, radius=RADIO_BOLA, restitution=0.3)
 	
-	rect_final = (mundo.CreateStaticBody(position=(85, 20), shapes=b2PolygonShape(box=(8,2), friction=5)))
+	rect_final = (mundo.CreateStaticBody(position=(83, 20), shapes=b2PolygonShape(box=(10,2), friction=50)))
 	
 	rect_final.fixtures[0].filterData.categoryBits = 0x0002
 	rect_final.fixtures[0].filterData.maskBits = 0x0004
@@ -199,7 +200,16 @@ def main():
 		else:
 			color_rojo_final[1] -= 0.02
 			
-		debuxar_rect(rect_final.position, list(rect_final.fixtures[0].shape), rect_final.angle, [color_rojo_final[1],1,0,1], True)
+		if (list(bola.position)[0] > list(rect_final.position)[0]-5 and list(bola.position)[0] < list(rect_final.position)[0]+5
+			and int(((list(bola.position)[1]-RADIO_BOLA) - (list(rect_final.position)[1]+1))) in [0,1]):
+			color_rojo_final[1] = 0
+			color_verde_final = 1
+			bola.inertia = bola.inertia - 5
+			bola.inertia = max(bola.inertia,0)
+		else:
+			color_verde_final = 0.8
+			
+		debuxar_rect(rect_final.position, list(rect_final.fixtures[0].shape), rect_final.angle, [color_rojo_final[1],color_verde_final,0.2,1], True)
 		
 		if bola:
 			debuxar_circulo(bola.position, RADIO_BOLA)
