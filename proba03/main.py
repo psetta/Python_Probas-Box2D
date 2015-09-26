@@ -199,7 +199,7 @@ def main():
 		else:
 			color_rojo_final[1] -= 0.02
 			
-		if (list(bola.position)[0] > list(rect_final.position)[0]-5 and list(bola.position)[0] < list(rect_final.position)[0]+5
+		if bola and (list(bola.position)[0] > list(rect_final.position)[0]-5 and list(bola.position)[0] < list(rect_final.position)[0]+5
 			and int(((list(bola.position)[1]-RADIO_BOLA) - (list(rect_final.position)[1]+1))) in [0,1]):
 			color_rojo_final[1] = 0
 			color_verde_final = 1

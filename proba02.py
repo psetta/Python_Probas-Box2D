@@ -75,8 +75,8 @@ mundo = b2World(gravity=(0, -50))
 def crear_mundo():
 	global lista_suelo
 	lista_suelo.append(mundo.CreateStaticBody(position=(0, 0), shapes=b2PolygonShape(box=(12,2))))
-	lista_suelo.append(mundo.CreateStaticBody(position=(30, 8), angle=-0.3, shapes=b2PolygonShape(box=(10,2))))
-	lista_suelo.append(mundo.CreateStaticBody(position=(60, 20), angle=0.5, shapes=b2PolygonShape(box=(10,2))))
+	lista_suelo.append(mundo.CreateStaticBody(position=(30, 8), angle=-0.2, shapes=b2PolygonShape(box=(10,2))))
+	lista_suelo.append(mundo.CreateStaticBody(position=(60, 20), angle=0.3, shapes=b2PolygonShape(box=(10,2))))
 	lista_suelo.append(mundo.CreateStaticBody(position=(90, 30), shapes=b2PolygonShape(box=(10,2))))
 	lista_suelo.append(mundo.CreateStaticBody(position=(120, 25), shapes=b2PolygonShape(box=(5,2))))
 	lista_suelo.append(mundo.CreateStaticBody(position=(130, 20), shapes=b2PolygonShape(box=(5,2))))
@@ -84,7 +84,7 @@ def crear_mundo():
 	
 crear_mundo()
 
-lista_generador_caixas = [generador_caixas([50,120],0.4,0.4,2,0,0.1,1),generador_caixas([70,120],5,2,100,0,0.05,1)]
+lista_generador_caixas = [generador_caixas([70,120],5,2,200,0,0.05,1)]
 
 personaje = mundo.CreateDynamicBody(position=(0,3.5), shapes=b2CircleShape(box=(1,2), density=10, friction=5, radius=1.5))
 
