@@ -193,18 +193,17 @@ def main():
 			color_rojo_final[0] = 1
 		if color_rojo_final[1] > 1:
 			color_rojo_final[0] = 0
-			
+		
 		if color_rojo_final[0] == 1:
 			color_rojo_final[1] += 0.02
 		else:
-			color_rojo_final[1] -= 0.02
+			color_rojo_final[1] -= 0.02	
 			
-		if bola and (list(bola.position)[0] > list(rect_final.position)[0]-5 and list(bola.position)[0] < list(rect_final.position)[0]+5
-			and int(((list(bola.position)[1]-RADIO_BOLA) - (list(rect_final.position)[1]+1))) in [0,1]):
+		if bola and (list(bola.position)[0] > list(rect_final.position)[0]-8 and list(bola.position)[0] < list(rect_final.position)[0]+8
+			and int(((list(bola.position)[1]-RADIO_BOLA) - (list(rect_final.position)[1]+1))) in [0,1,2]):
 			color_rojo_final[1] = 0
 			color_verde_final = 1
-			bola.inertia = bola.inertia - 5
-			bola.inertia = max(bola.inertia,0)
+			bola.linearVelocity[0] = 0
 		else:
 			color_verde_final = 0.8
 			
@@ -251,13 +250,9 @@ def main():
 			
 		pos_mouse_gl = [pos_mouse[0]*ANCHO_GL/ANCHO_VENTANA-ANCHO_GL/2-pos_camara[0],ALTO_GL-(pos_mouse[1]*ALTO_GL/ALTO_VENTANA)-pos_camara[1]]
 		
-		if descanso_mouse == 0 and (teclas_mouse_pulsadas[0] or teclas_mouse_pulsadas[2]):
-			if teclas_mouse_pulsadas[0] and len(vertices_clicados) <= 1:
-				vertices_clicados.append(pos_mouse_gl)
-				descanso_mouse = TEMPO_ESPERA_MOUSE
-			if teclas_mouse_pulsadas[2]:
-				vertices_clicados = []
-				angulo_rectangulo_clicado = 0
+		if teclas_mouse_pulsadas[2]:
+			vertices_clicados = []
+			angulo_rectangulo_clicado = 0
 		
 		#TECLAS ######
 		
@@ -287,9 +282,18 @@ def main():
 					ANCHO_GL -= 5
 				if event.button == 5:
 					ANCHO_GL += 5
-				ANCHO_GL = max(50,ANCHO_GL)
-				ANCHO_GL = min(300,ANCHO_GL)
-				ALTO_GL = ANCHO_GL*ALTO_VENTANA/ANCHO_VENTANA
+				if event.button in [4,5]:
+					ANCHO_GL = max(50,ANCHO_GL)
+					ANCHO_GL = min(300,ANCHO_GL)
+					ALTO_GL = ANCHO_GL*ALTO_VENTANA/ANCHO_VENTANA
+				if event.button == 1:
+					if len(vertices_clicados) == 0:
+						vertices_clicados.append(pos_mouse_gl)
+					
+			if event.type == pygame.MOUSEBUTTONUP:
+				if event.button == 1:
+					if len(vertices_clicados) == 1:
+						vertices_clicados.append(pos_mouse_gl)
 
 			if event.type == pygame.KEYDOWN:
 			
