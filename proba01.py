@@ -100,9 +100,13 @@ def main():
 		
 		for i in lista_suelo:
 			debuxar_rect(i.position, list(i.fixtures[0].shape))
-			
+		
+		#BORRADO DE CAIXAS
+		
 		for i in range(len(lista_caixas)):
 			if lista_caixas[i].position[1] < LINHA_BORRADO_Y:
+				lista_caixas[i].DestroyFixture(lista_caixas_shape[i])
+				mundo.DestroyBody(lista_caixas[i])
 				lista_caixas.remove(lista_caixas[i])
 				lista_caixas_shape.remove(lista_caixas_shape[i])
 				break
@@ -176,10 +180,6 @@ def main():
 					lista_suelo.append(mundo.CreateStaticBody(position=(0, 0), shapes=b2PolygonShape(box=(50,5))))
 					lista_suelo.append(mundo.CreateStaticBody(position=(-50, 15), shapes=b2PolygonShape(box=(5,20))))
 					lista_suelo.append(mundo.CreateStaticBody(position=(50, 15), shapes=b2PolygonShape(box=(5,20))))
-			
-			#	if event.key == pygame.K_SPACE:
-			#		for i in lista_caixas:
-			#			i.ApplyForce(b2Vec2(0,100), i.position, 0)
 					
 			if event.type == pygame.QUIT:
 				pygame.quit()

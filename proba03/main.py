@@ -225,6 +225,7 @@ def main():
 		for i in range(len(lista_caixas)):
 			if lista_caixas[i].position[1] < LINHA_BORRADO_Y:
 				lista_caixas[i].DestroyFixture(lista_caixas_shape[i])
+				mundo.DestroyBody(lista_caixas[i])
 				lista_caixas.remove(lista_caixas[i])
 				lista_caixas_shape.remove(lista_caixas_shape[i])
 				break
