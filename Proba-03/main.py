@@ -249,7 +249,8 @@ def main():
 		if descanso_mouse == 0:
 			teclas_mouse_pulsadas = pygame.mouse.get_pressed()
 			
-		pos_mouse_gl = [pos_mouse[0]*ANCHO_GL/ANCHO_VENTANA-ANCHO_GL/2-pos_camara[0],ALTO_GL-(pos_mouse[1]*ALTO_GL/ALTO_VENTANA)-pos_camara[1]]
+		pos_mouse_gl = [pos_mouse[0]*ANCHO_GL/ANCHO_VENTANA-ANCHO_GL/2-pos_camara[0],
+						ALTO_GL-(pos_mouse[1]*ALTO_GL/ALTO_VENTANA)-pos_camara[1]]
 		
 		if teclas_mouse_pulsadas[2]:
 			vertices_clicados = []
