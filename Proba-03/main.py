@@ -127,13 +127,13 @@ def main():
 	
 	pygame.init()
 	
-	ventana = pygame.display.set_mode((ANCHO_VENTANA, ALTO_VENTANA), DOUBLEBUF|OPENGL|RESIZABLE )
+	ventana = pygame.display.set_mode((ANCHO_VENTANA, ALTO_VENTANA), DOUBLEBUF|OPENGL|RESIZABLE)
 	
 	pygame.display.set_caption("")
 	
 	icono = pygame.image.load("img/icono.png").convert_alpha()
 	
-	pygame.display. set_icon (icono)
+	pygame.display.set_icon(icono)
 	
 	init_gl()
 	
