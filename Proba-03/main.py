@@ -376,7 +376,7 @@ def main():
 		
 				ANCHO_VENTANA = event.dict['size'][0]
 				ALTO_VENTANA = event.dict['size'][1]
-				ventana = pygame.display.set_mode((ANCHO_VENTANA, ALTO_VENTANA), DOUBLEBUF|OPENGL|RESIZABLE )
+				ventana = pygame.display.set_mode((ANCHO_VENTANA, ALTO_VENTANA), DOUBLEBUF|OPENGL|RESIZABLE)
 				ALTO_GL = ANCHO_GL*ALTO_VENTANA/ANCHO_VENTANA
 				init_gl()
 				
