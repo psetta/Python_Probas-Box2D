@@ -69,14 +69,14 @@ class generador_caixas:
 
 FRICCION = 0.2
 
-mundo = b2World(gravity=(0, -50))
+mundo = b2World(gravity=(0, -30))
 
 
 def crear_mundo():
 	global lista_suelo
 	lista_suelo.append(mundo.CreateStaticBody(position=(0, 0), shapes=b2PolygonShape(box=(12,2))))
 	lista_suelo.append(mundo.CreateStaticBody(position=(30, 8), angle=-0.2, shapes=b2PolygonShape(box=(10,2))))
-	lista_suelo.append(mundo.CreateStaticBody(position=(60, 20), angle=0.3, shapes=b2PolygonShape(box=(10,2))))
+	lista_suelo.append(mundo.CreateStaticBody(position=(60, 20), angle=0.2, shapes=b2PolygonShape(box=(10,2))))
 	lista_suelo.append(mundo.CreateStaticBody(position=(90, 30), shapes=b2PolygonShape(box=(10,2))))
 	lista_suelo.append(mundo.CreateStaticBody(position=(120, 25), shapes=b2PolygonShape(box=(5,2))))
 	lista_suelo.append(mundo.CreateStaticBody(position=(130, 20), shapes=b2PolygonShape(box=(5,2))))
@@ -86,7 +86,7 @@ crear_mundo()
 
 lista_generador_caixas = [generador_caixas([70,120],5,2,200,0,0.05,1)]
 
-personaje = mundo.CreateDynamicBody(position=(0,3.5), shapes=b2CircleShape(box=(1,2), density=10, friction=5, radius=1.5))
+personaje = mundo.CreateDynamicBody(position=(0,3.5), shapes=b2CircleShape(radius=1.5))
 
 #MAIN
 
@@ -211,15 +211,15 @@ def main():
 			if modo_camara == "personaje":
 				if (list(personaje.linearVelocity)[1] < 0.1 and personaje.contacts and personaje.contacts[0].contact.touching
 					and personaje.fixtures[0].body.contacts[0].contact.manifold.localNormal[1] >= 0.1):
-					personaje.ApplyForceToCenter(b2Vec2(0,10), personaje.position)
-					personaje.ApplyLinearImpulse(b2Vec2(0,35), personaje.position, 0)
+					personaje.ApplyForceToCenter(b2Vec2(0,10), True)
+					personaje.ApplyLinearImpulse(b2Vec2(0,35), personaje.position, False)
 			else:
 				pos_camara[1] -= 1
 			
 		
 		if tecla_pulsada[K_DOWN] or tecla_pulsada[K_s]:
 			if modo_camara == "personaje":
-				personaje.ApplyForceToCenter(b2Vec2(0,-50), personaje.position)
+				personaje.ApplyForceToCenter(b2Vec2(0,-50), True)
 			else:
 				pos_camara[1] += 1
 		
@@ -227,10 +227,10 @@ def main():
 			if modo_camara == "personaje":
 				if personaje.fixtures[0].body.contacts:
 					if (list(personaje.linearVelocity)[0]) > -1:
-						personaje.ApplyLinearImpulse(b2Vec2(-2,0), personaje.position, 0)
-					personaje.ApplyForceToCenter(b2Vec2(-30,0), personaje.position)
+						personaje.ApplyLinearImpulse(b2Vec2(-2,0), personaje.position, False)
+					personaje.ApplyForceToCenter(b2Vec2(-30,0), True)
 				else:
-					personaje.ApplyForceToCenter(b2Vec2(-20,0), personaje.position)
+					personaje.ApplyForceToCenter(b2Vec2(-20,0), True)
 					personaje.linearVelocity = b2Vec2(max(-25,list(personaje.linearVelocity)[0]),list(personaje.linearVelocity)[1])
 			else:
 				pos_camara[0] += 1
@@ -239,19 +239,19 @@ def main():
 			if modo_camara == "personaje":
 				if personaje.fixtures[0].body.contacts:
 					if (list(personaje.linearVelocity)[0]) < 1:
-						personaje.ApplyLinearImpulse(b2Vec2(2,0), personaje.position, 0)
-					personaje.ApplyForceToCenter(b2Vec2(30,0), personaje.position)
+						personaje.ApplyLinearImpulse(b2Vec2(2,0), personaje.position, False)
+					personaje.ApplyForceToCenter(b2Vec2(30,0), True)
 				else:
-					personaje.ApplyForceToCenter(b2Vec2(20,0), personaje.position)
+					personaje.ApplyForceToCenter(b2Vec2(20,0), True)
 					personaje.linearVelocity = b2Vec2(min(25,list(personaje.linearVelocity)[0]),list(personaje.linearVelocity)[1])
 			else:
 				pos_camara[0] -= 1
 				
 		else:
 			if personaje.fixtures[0].body.contacts:
-				personaje.ApplyLinearImpulse(b2Vec2(-(list(personaje.linearVelocity)[0])/5,0), personaje.position, 0)
+				personaje.ApplyLinearImpulse(b2Vec2(-(list(personaje.linearVelocity)[0])/5,0), personaje.position, False)
 			else:
-				personaje.ApplyForceToCenter(b2Vec2(-(list(personaje.linearVelocity)[0])/20,0), personaje.position)
+				personaje.ApplyForceToCenter(b2Vec2(-(list(personaje.linearVelocity)[0])/20,0), True)
 				
 		personaje.linearVelocity = b2Vec2(max(-35,list(personaje.linearVelocity)[0]),list(personaje.linearVelocity)[1])
 		personaje.linearVelocity = b2Vec2(min(35,list(personaje.linearVelocity)[0]),list(personaje.linearVelocity)[1])
@@ -285,7 +285,7 @@ def main():
 					lista_suelo = []
 					mundo = b2World(gravity=(0, -50))
 					crear_mundo()
-					personaje = mundo.CreateDynamicBody(position=(0,3.5), shapes=b2CircleShape(box=(1,2), density=10, friction=5, radius=1.5))
+					personaje = mundo.CreateDynamicBody(position=(0,3.5), shapes=b2CircleShape(radius=1.5))
 					pos_camara = [-personaje.position[0], -personaje.position[1]+ALTO_GL/2]
 					vertices_clicados = []
 					game_over = False

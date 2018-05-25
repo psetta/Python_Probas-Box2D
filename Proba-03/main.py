@@ -82,7 +82,7 @@ def crear_mundo():
 	bola = mundo.CreateDynamicBody(position=(-90,110))
 	bola_shape = bola.CreateCircleFixture(density=3, friction=0.6, radius=RADIO_BOLA, restitution=0.3)
 	
-	rect_final = (mundo.CreateStaticBody(position=(83, 20), shapes=b2PolygonShape(box=(10,2), friction=50)))
+	rect_final = (mundo.CreateStaticBody(position=(83, 20), shapes=b2PolygonShape(box=(10,2))))
 	
 	rect_final.fixtures[0].filterData.categoryBits = 0x0002
 	rect_final.fixtures[0].filterData.maskBits = 0x0004
